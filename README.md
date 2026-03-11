@@ -11,7 +11,7 @@ bun run dev
 ```
 
 
-Example output
+Example output... Not yet fully correct
 ```
 ┌──────────────────────────────────────────────────────────┐
 │ _MonoClass                                               │
