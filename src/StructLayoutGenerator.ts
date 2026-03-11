@@ -78,7 +78,7 @@ export class StructLayoutGenerator<T extends StructDefinition> {
           layout = this.generate(f.definition)
         }
         pad(layout.alignment)
-        push(layout.name, layout.size)
+        push(f.name, layout.size)
         maxOffset = Math.max(maxOffset, layout.alignment)
         continue;
       }
@@ -98,7 +98,6 @@ export class StructLayoutGenerator<T extends StructDefinition> {
       size: cur
     }
 
-    console.log(res);
     return res
   }
 

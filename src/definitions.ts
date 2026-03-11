@@ -5,16 +5,26 @@ function defineStruct<T extends StructDefinition>(def: T): T {
 }
 
 
-
+// struct _MonoType {
+// 	union {
+// 		MonoClass *klass; /* for VALUETYPE and CLASS */
+// 		MonoType *type;   /* for PTR */
+// 		MonoArrayType *array; /* for ARRAY */
+// 		MonoMethodSignature *method;
+// 		MonoGenericParam *generic_param; /* for VAR and MVAR */
+// 		MonoGenericClass *generic_class; /* for GENERICINST */
+// 	} data;
+// 	unsigned int attrs    : 16; /* param attributes or field flags */
+// 	MonoTypeEnum type     : 8;
+// 	unsigned int has_cmods : 1;  
+// 	unsigned int byref    : 1;
+// 	unsigned int pinned   : 1;  /* valid when included in a local var signature */
+// };
 export const _MonoTypeStructDefinition = defineStruct({
   name: "MonoType",
   fields: [
-    { ctype: "MonoClass", name: "klass", type: "ptr" },
-    { ctype: "MonoTypeEnum", name: "type", type: "uint8" },
-    { ctype: "guint16", name: "num_mods", type: "uint16" },
-    { ctype: "MonoCustomMod", name: "modifiers", type: "ptr" },
-    { ctype: "MonoType", name: "byval_type", type: "ptr" },
-    { ctype: "MonoArrayType", name: "array_type", type: "ptr" },
+    { ctype: "Union MonoClass", name: "klass", type: "ptr" },
+    { ctype: "unsigned int", name: "bitfields", type: "int32" },
   ]
 } as const);
 
@@ -31,28 +41,15 @@ export const _MonoClassSizesStructDefinition = defineStruct({
   ]
 } as const);
 
-export const _MonoGCDescriptorStructDefinition = defineStruct({
-  name: "MonoGCDescriptor",
-  fields: [
-    { ctype: "void*", name: "gc_descr", type: "ptr" },
-  ]
-} as const);
-
-export const _MonoClassRuntimeInfoStructDefinition = defineStruct({
-  name: "MonoClassRuntimeInfo",
-  fields: [
-    { ctype: "MonoDomain", name: "domain", type: "ptr" },
-    { ctype: "guint32", name: "max_dom", type: "uint32" },
-    { ctype: "MonoVTable*", name: "vtables", type: "ptr" }
-  ]
-} as const);
-
 export const _MonoPropertyBagStructDefinition = defineStruct({
   name: "MonoPropertyBag",
   fields: [
     { ctype: "MonoPropertyBagItem", name: "head", type: "ptr" }
   ]
 } as const);
+
+
+
 
 export const _MonoClassStructDefinition = defineStruct({
   name: "_MonoClass",
@@ -64,13 +61,13 @@ export const _MonoClassStructDefinition = defineStruct({
     { ctype: "guint8", name: "rank", type: "uint8" },
     { ctype: "guint8", name: "class_kind", type: "uint8" },
 
-    { type: "padding", name: "bitfield_padding1", size: 1 }, // This represents bitfields from 'inited' through 'is_byreflike'
+    { ctype: "guint", name: "bitfields1", type: "uint32", }, // This represents bitfields from 'inited' through 'is_byreflike'
 
     // Next byte - alignment and packing
     { ctype: "guint8", name: "min_align", type: "uint8" },
-    { type: "padding", name: "bitfield_padding2", size: 1 }, // Bitfields from 'packing_size' through 'contextbound'
-    { type: "padding", name: "bitfield_padding3", size: 1 }, // Bitfields from 'delegate' through 'nested_classes_inited'
-    { type: "padding", name: "bitfield_padding4", size: 1 }, // Bitfields from 'interfaces_inited' through 'has_dim_conflicts'
+    { type: "uint8", name: "bitfields2" }, // Bitfields from 'packing_size' through 'contextbound'
+    { type: "uint8", name: "bitfields3" }, // Bitfields from 'delegate' through 'nested_classes_inited'
+    { type: "uint8", name: "bitfields4" }, // Bitfields from 'interfaces_inited' through 'has_dim_conflicts'
 
     { ctype: "MonoClass", name: "parent", type: "ptr" },
     { ctype: "MonoClass", name: "nested_in", type: "ptr" },
@@ -92,8 +89,7 @@ export const _MonoClassStructDefinition = defineStruct({
     {
       ctype: "union _MonoClassSizes",
       name: "sizes",
-      type: "struct",
-      definition: _MonoClassSizesStructDefinition
+      type: "int32",
     },
 
     { ctype: "MonoClassField", name: "fields", type: "ptr" },
@@ -113,24 +109,21 @@ export const _MonoClassStructDefinition = defineStruct({
     },
 
     {
-      ctype: "MonoGCDescriptor",
+      ctype: "MonoGCDescriptor", // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/sgen/sgen-conf.h#L32
       name: "gc_descr",
-      type: "struct",
-      definition: _MonoGCDescriptorStructDefinition
+      type: "ptr",
     },
     {
       ctype: "MonoClassRuntimeInfo",
       name: "runtime_info",
-      type: "struct",
-      definition: _MonoClassRuntimeInfoStructDefinition
+      type: "ptr",
     },
 
     { ctype: "MonoMethod", name: "vtable", type: "ptr" },
-    {
-      ctype: "MonoPropertyBag",
+    { 
+      ctype: "MonoPropertyBag", //https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/property-bag.h#L24
       name: "infrequent_data",
-      type: "struct",
-      definition: _MonoPropertyBagStructDefinition
+      type: "ptr",
     },
 
     { ctype: "void*", name: "unity_user_data", type: "ptr" },
@@ -139,7 +132,30 @@ export const _MonoClassStructDefinition = defineStruct({
 } as const);
 
 
-
+// struct _MonoClassDef {
+// 	MonoClass klass;
+// 	guint32	flags;
+// 	/*
+// 	 * From the TypeDef table
+// 	 */
+// 	guint32 first_method_idx;
+// 	guint32 first_field_idx;
+// 	guint32 method_count, field_count;
+// 	/* next element in the class_cache hash list (in MonoImage) */
+// 	MonoClass *next_class_cache;
+// };
+export const _MonoClassDefStructDefinition = defineStruct({
+  name: "_MonoClassDef",
+  fields: [
+    { ctype: "MonoClass", name: "klass", type: "struct", definition: _MonoClassStructDefinition },
+    { ctype: "guint32", name: "flags", type: "uint32" },
+    { ctype: "guint32", name: "first_method_idx", type: "uint32" },
+    { ctype: "guint32", name: "first_field_idx", type: "uint32" },
+    { ctype: "guint32", name: "method_count", type: "uint32" },
+    { ctype: "guint32", name: "field_count", type: "uint32" },
+    { ctype: "MonoClass", name: "next_class_cache", type: "ptr" },
+  ]
+})
 
 
 

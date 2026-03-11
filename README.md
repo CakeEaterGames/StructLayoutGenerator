@@ -11,11 +11,11 @@ bun run dev
 ```
 
 
-Example output... Not yet fully correct
+Example output... (If someone could comment on the layout of packed bits starting at 28, that would be great)
 ```
 ┌──────────────────────────────────────────────────────────┐
 │ _MonoClass                                               │
-│ Size: 312 bytes, Alignment: 8 bytes                      │
+│ Size: 232 bytes, Alignment: 8 bytes                      │
 ├──────────────────────────────────────────────────────────┤
 │   0-  7 │ element_class            │ 8 bytes             │
 │   8- 15 │ cast_class               │ 8 bytes             │
@@ -23,12 +23,12 @@ Example output... Not yet fully correct
 │  24- 25 │ idepth                   │ 2 bytes             │
 │  26- 26 │ rank                     │ 1 byte              │
 │  27- 27 │ class_kind               │ 1 byte              │
-│  28- 28 │ bitfield_padding1        │ 1 byte              │
-│  29- 29 │ min_align                │ 1 byte              │
-│  30- 30 │ bitfield_padding2        │ 1 byte              │
-│  31- 31 │ bitfield_padding3        │ 1 byte              │
-│  32- 32 │ bitfield_padding4        │ 1 byte              │
-│  33- 39 │ [padding]                │ 7 bytes░░░░░░░░░░░░ │
+│  28- 31 │ bitfields1               │ 4 bytes             │
+│  32- 32 │ min_align                │ 1 byte              │
+│  33- 33 │ bitfields2               │ 1 byte              │
+│  34- 34 │ bitfields3               │ 1 byte              │
+│  35- 35 │ bitfields4               │ 1 byte              │
+│  36- 39 │ [padding]                │ 4 bytes░░░░░░░░░░░░ │
 │  40- 47 │ parent                   │ 8 bytes             │
 │  48- 55 │ nested_in                │ 8 bytes             │
 │  56- 63 │ image                    │ 8 bytes             │
@@ -46,15 +46,29 @@ Example output... Not yet fully correct
 │ 112-119 │ interface_offsets_packed │ 8 bytes             │
 │ 120-127 │ interface_bitmap         │ 8 bytes             │
 │ 128-135 │ interfaces               │ 8 bytes             │
-│ 136-159 │ _MonoClassSizes          │ 24 bytes            │
-│ 160-167 │ fields                   │ 8 bytes             │
-│ 168-175 │ methods                  │ 8 bytes             │
-│ 176-215 │ MonoType                 │ 40 bytes            │
-│ 216-255 │ MonoType                 │ 40 bytes            │
-│ 256-263 │ MonoGCDescriptor         │ 8 bytes             │
-│ 264-287 │ MonoClassRuntimeInfo     │ 24 bytes            │
-│ 288-295 │ vtable                   │ 8 bytes             │
-│ 296-303 │ MonoPropertyBag          │ 8 bytes             │
-│ 304-311 │ unity_user_data          │ 8 bytes             │
+│ 136-139 │ sizes                    │ 4 bytes             │
+│ 140-143 │ [padding]                │ 4 bytes░░░░░░░░░░░░ │
+│ 144-151 │ fields                   │ 8 bytes             │
+│ 152-159 │ methods                  │ 8 bytes             │
+│ 160-175 │ this_arg                 │ 16 bytes            │
+│ 176-191 │ _byval_arg               │ 16 bytes            │
+│ 192-199 │ gc_descr                 │ 8 bytes             │
+│ 200-207 │ runtime_info             │ 8 bytes             │
+│ 208-215 │ vtable                   │ 8 bytes             │
+│ 216-223 │ infrequent_data          │ 8 bytes             │
+│ 224-231 │ unity_user_data          │ 8 bytes             │
+└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│ _MonoClassDef                                            │
+│ Size: 264 bytes, Alignment: 8 bytes                      │
+├──────────────────────────────────────────────────────────┤
+│   0-231 │ klass            │ 232 bytes                   │
+│ 232-235 │ flags            │ 4 bytes                     │
+│ 236-239 │ first_method_idx │ 4 bytes                     │
+│ 240-243 │ first_field_idx  │ 4 bytes                     │
+│ 244-247 │ method_count     │ 4 bytes                     │
+│ 248-251 │ field_count      │ 4 bytes                     │
+│ 252-255 │ [padding]        │ 4 bytes░░░░░░░░░░░░░░░░░░░░ │
+│ 256-263 │ next_class_cache │ 8 bytes                     │
 └──────────────────────────────────────────────────────────┘
 ```
